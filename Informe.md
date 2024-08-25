@@ -18,4 +18,9 @@ Pasos seguidos para la instalación de Xv6
     - sudo make install
     - qemu-system-riscv64 --version
 - Luego de completar estos pasos nos dirijimos nuevamente a nuestra carpeta de xv6 y corremos el comando "make qemu" y ya debería funcionar todo
+- Finalmente, corremos los códigos proporcionados por el profesor, lo cuales serían
+    - ls
+    - echo "Hola xv6"
+    - cat README
+- Con esto podemos comprobar que xv6 está funcionando en nuestro ordenador, las pruebas se pueden comprobar en las fotos adjuntas en el trabajo con nombres "Ls & echo.jpeg" y "cat Readme".jepg
 
