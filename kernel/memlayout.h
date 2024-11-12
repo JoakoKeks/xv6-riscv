@@ -57,3 +57,5 @@
 //   TRAPFRAME (p->trapframe, used by the trampoline)
 //   TRAMPOLINE (the same page as in the kernel)
 #define TRAPFRAME (TRAMPOLINE - PGSIZE)
+
+#define PTE_RO (1 << 9) //Se define un bit solo para lectura en la entrada de la tabla de páginas

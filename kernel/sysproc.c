@@ -91,3 +91,64 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+
+uint64 
+sys_mprotect(void) {
+  uint64 addr;
+  int len;
+  struct proc *p = myproc();
+
+//Extraemos los argumentos de la llamada del sistema
+  argaddr(0, &addr);
+  argint(1, &len);
+  
+//Verificamos si ocurrió algún error al obtener dirección y tamaño del archivo
+  if (len <= 0 || addr <= 0)  
+    return -1;
+  
+//Generamos el código para deshabilitar escritura y habilitar solo lectura
+  for(int i = 0; i < len; i++)
+  {
+    pte_t *pte = walk(p->pagetable, addr + i * PGSIZE, 0);
+    if(pte == 0 || (*pte & PTE_V) == 0)
+      return -1;
+
+    *pte |= PTE_R;   //Habilitamos solo lectura
+    *pte &= ~PTE_W;; //Deshabilitamos escritura
+    
+  }
+  
+  sfence_vma();
+  return 0;
+}
+
+uint64 
+sys_munprotect(void) {
+  uint64 addr;
+  int len;
+  struct proc *p = myproc();
+
+//Extraemos los argumentos de la llamada del sistema
+  argaddr(0, &addr);
+  argint(1, &len);
+
+//Verificamos si ocurrió algún error al obtener dirección y tamaño del archivo  
+  if (len <= 0 || addr <= 0)  
+    return -1;
+  if(addr % PGSIZE != 0 || len <= 0)
+    return -1;
+  
+//Generamos el código que nos permite rehabilitar la escritura
+  for(int i = 0; i < len; i++) 
+  {
+    pte_t *pte = walk(p->pagetable, addr + i * PGSIZE, 0);
+    if(pte == 0 || (*pte & PTE_V) == 0)
+      return -1;
+
+    *pte |= PTE_W;  // Habilitar escritura
+  }
+  
+  sfence_vma();
+  return 0;
+}

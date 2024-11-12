@@ -45,8 +45,24 @@ usertrap(void)
   // since we're now in the kernel.
   w_stvec((uint64)kernelvec);
 
+  uint64 addr;
   struct proc *p = myproc();
-  
+
+  if ((r_scause() == 13) || (r_scause() == 12)) {
+        addr = r_stval();  // Obtiene la dirección que causó el fallo
+        pte_t *pte = walk(p->pagetable, addr, 0);
+
+        if (pte && (*pte & PTE_RO) && (r_scause() == 13)) {
+            // Si se intenta escribir en una página de solo lectura, termina el proceso
+            printf("Proceso %d intentó escribir en una página de solo lectura en 0x%p\n", p->pid, (void*)addr);
+            p->killed = 1;  
+        }
+    }
+
+    // Manejo habitual de traps en modo usuario.
+    if (p->killed)
+        exit(-1);
+
   // save user program counter.
   p->trapframe->epc = r_sepc();
   
