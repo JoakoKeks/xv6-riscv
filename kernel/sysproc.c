@@ -91,3 +91,60 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+uint64
+sys_send(void) {
+    int pid;
+    char msg[MAX_MESSAGE_LENGTH];
+    argint(0, &pid);
+if (argint(0, &pid) < 0) {
+    return -1;
+}
+argstr(1, msg, MAX_MESSAGE_LENGTH);
+if (argstr(1, msg, MAX_MESSAGE_LENGTH) < 0) {
+    return -1;
+}
+
+    if (msg_queue.size >= MAX_QUEUE_SIZE) {
+        release(&msg_queue.lock);
+        return -1; // Cola llena
+    }
+
+    message new_msg;
+    new_msg.sender_pid = myproc()->pid;
+    safestrcpy(new_msg.content, msg, MAX_MESSAGE_LENGTH);
+
+    msg_queue.messages[msg_queue.tail] = new_msg;
+    msg_queue.tail = (msg_queue.tail + 1) % MAX_QUEUE_SIZE;
+    msg_queue.size++;
+
+    wakeup(&msg_queue);
+
+    release(&msg_queue.lock);
+    return 0;
+}
+
+
+uint64
+sys_receive(void) {
+    char buffer[MAX_MESSAGE_LENGTH];
+    if (argstr(0, buffer, MAX_MESSAGE_LENGTH) < 0)
+      return -1;
+
+
+    acquire(&msg_queue.lock);
+
+    while (msg_queue.size == 0) {
+        sleep(&msg_queue, &msg_queue.lock);
+    }
+
+    message received_msg = msg_queue.messages[msg_queue.head];
+    msg_queue.head = (msg_queue.head + 1) % MAX_QUEUE_SIZE;
+    msg_queue.size--;
+
+    safestrcpy(buffer, received_msg.content, MAX_MESSAGE_LENGTH);
+
+    release(&msg_queue.lock);
+    return received_msg.sender_pid;
+}
+

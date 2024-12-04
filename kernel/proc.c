@@ -12,6 +12,19 @@ struct proc proc[NPROC];
 
 struct proc *initproc;
 
+
+#define MAX_QUEUE_SIZE 64
+
+typedef struct message_queue {
+    message messages[MAX_QUEUE_SIZE];
+    int head;   // Índice de lectura
+    int tail;   // Índice de escritura
+    int size;   // Cantidad actual de mensajes
+    struct spinlock lock;  // Sincronización
+} message_queue;
+
+message_queue msg_queue;
+
 int nextpid = 1;
 struct spinlock pid_lock;
 
@@ -43,6 +56,15 @@ proc_mapstacks(pagetable_t kpgtbl)
   }
 }
 
+
+//
+void
+init_message_queue(void) {
+    initlock(&msg_queue.lock, "message_queue");
+    msg_queue.head = 0;
+    msg_queue.tail = 0;
+    msg_queue.size = 0;
+}
 // initialize the proc table.
 void
 procinit(void)
@@ -56,6 +78,7 @@ procinit(void)
       p->state = UNUSED;
       p->kstack = KSTACK((int) (p - proc));
   }
+  init_message_queue();
 }
 
 // Must be called with interrupts disabled,

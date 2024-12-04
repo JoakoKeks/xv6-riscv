@@ -187,3 +187,9 @@ void            virtio_disk_intr(void);
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))
+#define MAX_MESSAGE_LENGTH 128
+
+typedef struct message {
+    int sender_pid;            // ID del proceso remitente
+    char content[MAX_MESSAGE_LENGTH];
+} message;

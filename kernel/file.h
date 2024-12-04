@@ -20,7 +20,6 @@ struct inode {
   int ref;            // Reference count
   struct sleeplock lock; // protects everything below here
   int valid;          // inode has been read from disk?
-  int permissions; // Bits de permisos: 0, 1, 2, 3 o 5
 
   short type;         // copy of disk inode
   short major;
